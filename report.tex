@@ -1,0 +1,615 @@
+\documentclass[conference]{IEEEtran}
+
+% ============================================================
+% PACKAGES
+% ============================================================
+
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{url}
+
+% ============================================================
+% TITLE
+% ============================================================
+
+\title{
+Explainable Machine Learning for Identifying Key Academic Stressors Using the University Student Stressors Questionnaire
+}
+
+% ============================================================
+% AUTHORS
+% ============================================================
+
+\author{
+\IEEEauthorblockN{SHIFAT SHARIF}
+\IEEEauthorblockA{
+Student ID: 21201213\\
+Department of Computer Science and Engineering\\
+BRAC University
+}
+\and
+\IEEEauthorblockN{IFAZ AHANAF ZAMAN}
+\IEEEauthorblockA{
+Student ID: 20101047\\
+Department of Computer Science and Engineering\\
+BRAC University
+}
+\and
+\IEEEauthorblockN{SHIUM AHMED SOWAD}
+\IEEEauthorblockA{
+Student ID: 22101871\\
+Department of Computer Science and Engineering\\
+BRAC University
+}
+}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================
+% ABSTRACT
+% ============================================================
+
+\begin{abstract}
+Academic stress is an important concern among university students, and identifying the academic factors associated with stress can help improve understanding of student well-being. This study applies machine learning and Explainable AI (XAI) to the University Student Stressors Questionnaire (USSQ) validation dataset containing 29 academic-stressor items, demographic variables, and DASS-21 measures from 4,925 participants. Multiple machine-learning models were evaluated to predict the DASS-21 stress score (DASS-S), while avoiding target leakage. SHAP was then used to identify and rank the USSQ items that contributed most strongly to model predictions and to examine their importance across the seven USSQ dimensions. The results demonstrate the potential of combining predictive modeling with explainability to identify important academic-stressor patterns. The findings represent predictive associations and model behavior rather than causal, diagnostic, or therapeutic conclusions.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+Academic Stress, University Students, USSQ, DASS-21, Machine Learning, Explainable AI, SHAP, Stress Prediction
+\end{IEEEkeywords}
+
+% ============================================================
+% 1. INTRODUCTION
+% ============================================================
+
+\section{Introduction}
+
+\subsection{Background}
+
+Academic stress can arise from workload, examinations, academic performance expectations, difficulties in learning, financial circumstances, future concerns, and social or institutional factors. University students may therefore experience several simultaneous sources of academic pressure. Existing research has examined academic stress using questionnaires, psychological scales, statistical analysis, and machine-learning methods.
+
+Recent studies have demonstrated that supervised machine learning can be applied to student stress and related psychological outcomes. Arya et al. investigated supervised machine-learning and artificial-neural-network approaches for predicting student stress \cite{arya2024}. Other recent research has examined academic stress in relation to academic self-efficacy, social support, subjective well-being, and psychological variables \cite{berlian2026,ouyang2026,zeng2025}.
+
+Although predictive models can identify complex patterns, their predictions may be difficult to interpret. Explainable Artificial Intelligence (XAI) provides techniques for understanding the contribution of individual predictors. SHAP (SHapley Additive exPlanations) is particularly useful because it assigns contribution values to individual features and allows global feature importance to be estimated.
+
+\subsection{Motivation}
+
+A major limitation of a prediction-only approach is that high predictive performance does not directly explain which academic stressors are most informative. For an academic-stressor questionnaire containing many related variables, identifying the most influential items can provide a clearer understanding of the structure represented by the predictive model.
+
+The University Student Stressors Questionnaire provides a structured 29-item representation of academic stressors. Combining these items with DASS-21 stress scores creates an opportunity to investigate whether individual USSQ components contain useful predictive information about an external stress measure.
+
+Recent work has also demonstrated the usefulness of explainable machine learning for academic stress research. Omarbekova et al. proposed an explainable machine-learning framework for academic-stress classification and incorporated feature-importance analysis \cite{omarbekova2026}. The present study extends this general direction by focusing on the 29-item USSQ structure and predicting a continuous DASS-S score.
+
+\subsection{Problem Definition}
+
+The central research question is:
+
+\begin{quote}
+Which USSQ academic-stressor items provide the greatest predictive information for DASS-21 stress scores, and can explainable machine learning be used to identify and rank these items without making causal or diagnostic claims?
+\end{quote}
+
+The study has four objectives:
+
+\begin{enumerate}
+\item Examine data quality, demographics, USSQ item distributions, and relationships with DASS-21 and Ryff Psychological Well-Being measures.
+\item Develop and compare machine-learning regression models using the 29 USSQ items and relevant demographic variables to predict DASS-S while avoiding target leakage.
+\item Apply SHAP to identify influential USSQ items and aggregate their importance across the seven USSQ dimensions.
+\item Evaluate the reliability and clarity of the results through model comparison, cross-validation, and appropriate subgroup analysis without making causal, diagnostic, or therapeutic claims.
+\end{enumerate}
+
+% ============================================================
+% 2. RELATED WORK
+% ============================================================
+
+\section{Related Work}
+
+Machine learning has increasingly been applied to the study of student stress. Arya et al. compared supervised machine-learning and artificial-neural-network methods for student stress prediction and demonstrated the potential of multiple algorithmic approaches \cite{arya2024}. Their work supports the use of model comparison rather than relying on a single machine-learning algorithm.
+
+Omarbekova et al. developed an explainable machine-learning framework for academic stress classification using multiple datasets and feature-attribution methods \cite{omarbekova2026}. Their work is particularly relevant to the current study because it combines predictive modeling with explainability.
+
+Academic stress has also been investigated through relationships with academic self-efficacy, social support, subjective well-being, and cognitive appraisal. Berlian et al. examined academic stress in digital-based learning environments while considering social support, academic self-efficacy, and subjective well-being \cite{berlian2026}. Ouyang et al. investigated academic stress, cognitive appraisal, academic self-efficacy, and academic anxiety \cite{ouyang2026}. These studies demonstrate that academic stress is associated with multiple academic and psychological factors.
+
+Pittri et al. examined key academic stressors and coping mechanisms among built-environment students \cite{pittri2026}. Zeng and Cong investigated challenge and hindrance academic stressors and their relationship with university-student well-being \cite{zeng2025}. Such studies support the importance of distinguishing different categories of academic stressors rather than treating academic stress as a single undifferentiated construct.
+
+Garcia-Ceja et al. introduced a dataset involving university students' stress and anxiety based on questionnaires and wearable sensors, illustrating another direction in student-stress research \cite{garciaceja2026}. Pham-Ngoc et al. investigated psychological and religious predictors related to help-seeking attitudes among university students under perceived stress \cite{phamngoc2026}.
+
+The literature therefore shows increasing interest in machine learning, explainability, and multidimensional academic-stress research. However, the present study specifically combines the 29-item USSQ with DASS-S prediction and SHAP-based interpretation. This allows the analysis to move from general prediction toward item-level identification of influential academic stressors.
+
+% ============================================================
+% 3. DATASET DESCRIPTION
+% ============================================================
+
+\section{Dataset Description}
+
+\subsection{Dataset Overview}
+
+The study uses the University Student Stressors Questionnaire (USSQ) validation dataset. The dataset contains anonymized questionnaire responses from university students and includes academic-stressor items, demographic variables, DASS-21 measures, and Ryff Psychological Well-Being measures.
+
+The analysis dataset contains 4,925 participants and 45 variables.
+
+\begin{table}[H]
+\centering
+\caption{Dataset Overview}
+\begin{tabular}{ll}
+\toprule
+\textbf{Property} & \textbf{Description}\\
+\midrule
+Participants & 4,925\\
+Variables & 45\\
+USSQ items & 29\\
+Item identifiers & EU1--EU29\\
+Demographics & Sex, gender, age, academic level, faculty\\
+External measures & DASS-21 and Ryff PWB\\
+Target & DASS-S\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{USSQ Variables}
+
+The primary predictor variables are the 29 USSQ academic-stressor items, represented by EU1 through EU29. These items represent seven broader dimensions of academic stressors.
+
+\begin{table}[H]
+\centering
+\caption{USSQ Dimensions Used in the Analysis}
+\begin{tabular}{lll}
+\toprule
+\textbf{Dimension} & \textbf{Items} & \textbf{Count}\\
+\midrule
+Academic Overload & EU1--EU5 & 5\\
+Academic Inadequacy & EU6--EU9 & 4\\
+Performance Pressure & EU10--EU14 & 5\\
+Social Relations & EU15--EU19 & 5\\
+Future Concerns & EU20--EU24 & 5\\
+Financial Stress & EU25--EU28 & 4\\
+Institutional Environment & EU29 & 1\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Demographic and External Variables}
+
+Demographic variables include sex, gender, age, academic level, and faculty. These variables are considered as potentially relevant predictors.
+
+The dataset also contains DASS-21 measures of depression, anxiety, and stress as well as Ryff Psychological Well-Being measures. DASS-S is selected as the primary prediction target.
+
+To avoid target leakage, variables directly derived from or representing the same target information are excluded from the predictor matrix. Ryff variables are primarily used for exploratory analysis rather than automatically included in the primary prediction model.
+
+% ============================================================
+% 4. EXPLORATORY DATA ANALYSIS
+% ============================================================
+
+\section{Exploratory Data Analysis}
+
+\subsection{Data Quality}
+
+The first stage of the analysis evaluates missing values, duplicate records, variable types, and the number of unique observations. The dataset contains 4,925 observations and 45 variables. The data-quality analysis is used to identify whether preprocessing is required before modeling.
+
+\begin{table}[H]
+\centering
+\caption{Distribution of Students by Biological Sex}
+\label{tab:sex_distribution}
+\begin{tabular}{lrr}
+\toprule
+\textbf{Biological Sex} & \textbf{Number of Students} & \textbf{Percentage} \\
+\midrule
+Mujer  & 2,950 & 59.90\% \\
+Hombre & 1,970 & 40.00\% \\
+Otro   & 5     & 0.10\% \\
+\midrule
+\textbf{Total} & \textbf{4,925} & \textbf{100.00\%} \\
+\bottomrule
+\end{tabular}
+\end{table} 
+
+The demographic analysis shows that the dataset contains 4,925 students. Most participants were recorded as Mujer, followed by Hombre, while only a small number were categorized as Otro. This distribution provides an overview of the sample composition and highlights the need to consider demographic representation when interpreting model results and subgroup analyses.
+
+\subsection{USSQ Item Distributions}
+
+The 29 USSQ items are examined individually to identify differences in response distributions and average response levels. Visualization of the item distributions provides an initial understanding of which academic-stressor items tend to receive higher or lower responses.
+
+\begin{table}[H]
+\centering
+\caption{Mean Response Distribution of USSQ Items}
+\label{tab:ussq_means}
+\begin{tabular}{r l r}
+\toprule
+\textbf{Rank} & \textbf{USSQ Item} & \textbf{Mean Response} \\
+\midrule
+1  & EU11 & 3.107 \\
+2  & EU13 & 2.839 \\
+3  & EU10 & 2.659 \\
+4  & EU12 & 2.547 \\
+5  & EU4  & 2.498 \\
+6  & EU15 & 2.480 \\
+7  & EU3  & 2.443 \\
+8  & EU29 & 2.413 \\
+9  & EU17 & 2.377 \\
+10 & EU16 & 2.357 \\
+11 & EU14 & 2.356 \\
+12 & EU27 & 2.352 \\
+13 & EU2  & 2.350 \\
+14 & EU26 & 2.330 \\
+15 & EU22 & 2.303 \\
+16 & EU19 & 2.248 \\
+17 & EU28 & 2.095 \\
+18 & EU23 & 2.036 \\
+19 & EU5  & 2.015 \\
+20 & EU1  & 1.980 \\
+21 & EU24 & 1.971 \\
+22 & EU7  & 1.932 \\
+23 & EU25 & 1.897 \\
+24 & EU21 & 1.797 \\
+25 & EU6  & 1.769 \\
+26 & EU9  & 1.734 \\
+27 & EU18 & 1.721 \\
+28 & EU20 & 1.513 \\
+29 & EU8  & 1.297 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Correlation Analysis}
+
+Correlation analysis is performed to investigate relationships between USSQ items, DASS-21 measures, and Ryff Psychological Well-Being measures. Correlation results are interpreted as associations within the dataset and are not treated as evidence of causation.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{fig3_correlation_heatmap.png}
+\caption{Correlation structure among selected USSQ, DASS-21, and Ryff variables.}
+\label{fig:corr}
+\end{figure}
+
+\subsection{EDA Conclusion}
+
+The current EDA examined the dataset structure, data quality, demographic characteristics, USSQ item response distributions, DASS-21 outcomes, Ryff Psychological Well-Being measures, and the correlations between USSQ items and DASS stress scores.
+
+The analysis provides a current understanding of the dataset and the relationships among the variables. But, these exploratory correlations do not establish predictive performance or causal relationships by themselves. The next stage will focus on data preprocessing and baseline model development, including proper test split, handling of categorical variables when demographic features are included, implementation and comparison of baseline machine-learning models, and subsequent model explainability using SHAP.
+
+% ============================================================
+% 5. METHODOLOGY
+% ============================================================
+
+\section{Methodology}
+
+\subsection{Prediction Framework}
+
+The prediction problem is formulated as a supervised regression task:
+
+\[
+X =
+\{\mathrm{EU1},\mathrm{EU2},\ldots,\mathrm{EU29},
+\mathrm{Demographic\ Variables}\}
+\]
+
+and
+
+\[
+y = \mathrm{DASS\text{-}S}.
+\]
+
+The dataset is divided into training and testing subsets using an 80:20 split with a fixed random state of 42. The resulting training and testing samples are kept separate throughout model evaluation.
+
+\subsection{Preprocessing Pipeline}
+
+A Scikit-learn preprocessing pipeline is used to prevent information leakage during transformation. Numerical features are processed using median imputation. Categorical features are processed using most-frequent imputation and one-hot encoding.
+
+The preprocessing transformation is fitted using training data and subsequently applied to the testing data. This ensures that information from the test set does not influence the training transformation.
+
+\subsection{Regression Models}
+
+Ten regression algorithms are evaluated, representing linear, tree-based, ensemble, boosting, distance-based, and kernel-based learning approaches:
+
+\begin{enumerate}
+\item \textbf{Linear Regression}: A baseline model that assumes a linear relationship between the input features and the target variable, minimizing the sum of squared residuals.
+
+\item \textbf{Ridge Regression}: An extension of linear regression that applies L2 regularization to penalize large coefficients, reducing overfitting and improving generalization.
+
+\item \textbf{Decision Tree Regressor}: A non-linear model that recursively partitions the feature space into regions and predicts the mean target value within each leaf node.
+
+\item \textbf{Random Forest Regressor}: An ensemble method that builds multiple decision trees on bootstrapped samples and averages their predictions to reduce variance and improve stability.
+
+\item \textbf{Gradient Boosting Regressor}: An ensemble technique that sequentially adds weak learners, where each new model corrects the errors of the previous ones using gradient descent.
+
+\item \textbf{XGBoost Regressor}: An optimized gradient boosting implementation that incorporates regularization, tree pruning, and parallel processing for improved speed and performance.
+
+\item \textbf{CatBoost Regressor}: A gradient boosting algorithm designed to handle categorical features natively using ordered boosting and symmetric trees to reduce overfitting.
+
+\item \textbf{LightGBM Regressor}: A gradient boosting framework that uses histogram-based learning and leaf-wise tree growth for faster training and lower memory usage.
+
+\item \textbf{K-Nearest Neighbors Regressor}: A distance-based non-parametric model that predicts the target value by averaging the responses of the $k$ closest training samples in the feature space.
+
+\item \textbf{Support Vector Regression (SVR)}: A kernel-based model that finds a hyperplane that best fits the data within a margin of tolerance, using kernel functions to capture non-linear relationships.
+\end{enumerate}
+
+\subsection{Evaluation Metrics}
+
+Three primary regression metrics are used.
+
+Mean Absolute Error (MAE) is defined as the average absolute difference between the predicted and actual values:
+
+\begin{equation}
+\text{MAE} = \frac{1}{n} \sum_{i=1}^{n} |y_i - \hat{y}_i|
+\end{equation}
+
+where:
+\begin{itemize}
+\item $n$ = total number of observations in the test set
+\item $y_i$ = actual DASS-S value for observation $i$
+\item $\hat{y}_i$ = predicted DASS-S value for observation $i$
+\end{itemize}
+
+Root Mean Squared Error (RMSE) is the square root of the average squared difference between predicted and actual values:
+
+\begin{equation}
+\text{RMSE} = \sqrt{\frac{1}{n} \sum_{i=1}^{n} (y_i - \hat{y}_i)^2}
+\end{equation}
+
+where:
+\begin{itemize}
+\item $n$ = total number of observations in the test set
+\item $y_i$ = actual DASS-S value for observation $i$
+\item $\hat{y}_i$ = predicted DASS-S value for observation $i$
+\end{itemize}
+
+The coefficient of determination ($R^2$) measures the proportion of variance in the target variable that is explained by the model:
+
+\begin{equation}
+R^2 = 1 - \frac{\sum_{i=1}^{n} (y_i - \hat{y}_i)^2}{\sum_{i=1}^{n} (y_i - \bar{y})^2}
+\end{equation}
+
+where:
+\begin{itemize}
+\item $n$ = total number of observations in the test set
+\item $y_i$ = actual DASS-S value for observation $i$
+\item $\hat{y}_i$ = predicted DASS-S value for observation $i$
+\item $\bar{y}$ = mean of the actual DASS-S values
+\end{itemize}
+
+Lower MAE and RMSE indicate lower prediction error, while a higher $R^2$ indicates that the model explains a larger proportion of variance in the target.
+
+
+\subsection{Explainable AI}
+
+SHAP (SHapley Additive exPlanations) is used to investigate how individual predictor variables influence model predictions. For a prediction function $f$, SHAP decomposes the prediction into a baseline value and feature contributions:
+
+\begin{equation}
+f(x) = \phi_0 + \sum_{i=1}^{M} \phi_i
+\end{equation}
+
+where:
+\begin{itemize}
+\item $f(x)$ = model prediction for instance $x$
+\item $\phi_0$ = baseline prediction (average model output over the training set)
+\item $M$ = total number of features in the model
+\item $\phi_i$ = SHAP value representing the contribution of feature $i$ to the prediction for instance $x$
+\end{itemize}
+
+The mean absolute SHAP value is used as a global importance measure:
+
+\begin{equation}
+I_i = \frac{1}{n} \sum_{j=1}^{n} |\phi_{ij}|
+\end{equation}
+
+where:
+\begin{itemize}
+\item $I_i$ = global importance of feature $i$
+\item $n$ = total number of observations in the dataset
+\item $\phi_{ij}$ = SHAP value of feature $i$ for observation $j$
+\end{itemize}
+
+A larger $I_i$ value indicates greater average influence on the model predictions. Importantly, SHAP describes model behavior and predictive association; it does not establish that a particular academic stressor causes DASS-S.
+
+
+% ============================================================
+% 6. RESULTS
+% ============================================================
+
+\section{Results and Evaluation}
+
+\subsection{Model Performance}
+
+The implemented models were evaluated using the held-out test set. The actual regression results are summarized below.
+
+\begin{table*}[H]
+\centering
+\caption{Regression Model Performance on the Test Set}
+\begin{tabular}{lrrrr}
+\toprule
+\textbf{Model} & \textbf{MAE} & \textbf{RMSE} & \textbf{$R^2$} & \textbf{Training Time (s)}\\
+\midrule
+Linear Regression & 3.231432 & 4.060880 & 0.305929 & 0.063687\\
+Ridge & 3.231409 & 4.060981 & 0.305894 & 0.134231\\
+XGBoost & 3.215762 & 4.080984 & 0.299040 & 0.277720\\
+CatBoost & 3.244715 & 4.082879 & 0.298388 & 0.548062\\
+Random Forest & 3.291081 & 4.112127 & 0.288300 & 6.067307\\
+SVR & 3.239616 & 4.113480 & 0.287832 & 1.226563\\
+Gradient Boosting & 3.261078 & 4.120525 & 0.285390 & 1.781801\\
+LightGBM & 3.274507 & 4.148442 & 0.275674 & 0.250799\\
+KNN & 3.601015 & 4.547866 & 0.129479 & 0.031180\\
+Decision Tree & 3.727621 & 4.776363 & 0.039807 & 0.117756\\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+Linear Regression obtains the highest $R^2$ among the evaluated models at 0.305929 and also produces the lowest RMSE of 4.060880 among the models in the experiment. Ridge regression performs almost identically, with an $R^2$ of 0.305894.
+
+Interestingly, XGBoost obtains the lowest MAE at 3.215762, although its RMSE and $R^2$ are slightly weaker than those of Linear Regression. This indicates that model rankings can depend on the evaluation metric.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{fig4_model_comparison.png}
+\caption{Comparison of regression model performance.}
+\label{fig:models}
+\end{figure}
+
+\subsection{Interpretation of Model Results}
+
+The results show that simple linear models perform surprisingly well relative to the more complex nonlinear algorithms. Linear Regression and Ridge produce almost identical performance, suggesting that a substantial portion of the predictive relationship captured by the available variables can be represented through approximately linear combinations.
+
+XGBoost provides the lowest MAE, meaning its average absolute prediction error is smallest. However, Linear Regression produces the lowest RMSE and highest $R^2$. Therefore, selecting a final model should depend on the project's primary evaluation criterion rather than a single metric.
+
+Decision Tree and KNN perform considerably worse than the leading models. The Decision Tree obtains an $R^2$ of only 0.039807, while KNN obtains 0.129479. This suggests that these approaches are less effective for the current feature representation and prediction task.
+
+The relatively moderate $R^2$ values also indicate that the USSQ and demographic variables explain only part of the variation in DASS-S. Consequently, the model should not be interpreted as a complete representation of psychological stress.
+
+% ============================================================
+% 7. SHAP
+% ============================================================
+
+\subsection{SHAP-Based Feature Interpretation}
+
+After comparing predictive performance, SHAP is used to interpret the selected model and determine which predictors contribute most strongly to its predictions.
+
+The SHAP analysis focuses particularly on the USSQ items because the primary research question concerns identification of academic stressors. A SHAP summary plot provides both global importance and the direction of individual feature contributions.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\columnwidth]{fig5_shap_summary.png}
+\caption{SHAP summary plot showing global feature contributions.}
+\label{fig:shap}
+\end{figure}
+
+The most influential USSQ items identified through SHAP should be reported using the actual output generated by the notebook. The analysis should not replace the computed SHAP values with manually assigned values.
+
+The individual item contributions can subsequently be grouped into the seven USSQ dimensions. For a dimension $d$, the aggregate importance can be computed as:
+
+\[
+I_d =
+\sum_{i\in d}
+I_i,
+\]
+
+where $I_i$ is the mean absolute SHAP importance of USSQ item $i$.
+
+This aggregation provides a dimension-level view while retaining the item-level interpretation provided by SHAP.
+
+% ============================================================
+% 8. DISCUSSION
+% ============================================================
+
+\section{Discussion}
+
+The results demonstrate that the USSQ items and demographic variables contain useful predictive information for DASS-S, but the prediction task remains only moderately explained by the available predictors. The best $R^2$ obtained in the current experiment is approximately 0.306, meaning that substantial variation in the target remains unexplained by the current feature set.
+
+The near-equivalent performance of Linear Regression and Ridge is particularly notable. Linear Regression obtains an $R^2$ of 0.305929, while Ridge obtains 0.305894. This indicates that regularization provides almost no improvement under the current configuration.
+
+XGBoost produces the lowest MAE, but Linear Regression produces the best RMSE and $R^2$. Therefore, the results do not support the claim that a complex boosting model is universally superior. Instead, they demonstrate why multiple metrics and multiple algorithms should be compared.
+
+The model comparison also highlights computational differences. Random Forest requires approximately 6.07 seconds of training time, whereas Linear Regression requires approximately 0.064 seconds. Thus, the simpler model offers both competitive predictive performance and substantially lower computational cost.
+
+SHAP provides an additional interpretability layer. Rather than simply reporting predictive accuracy, the method allows the contribution of individual USSQ items to be examined. This is especially relevant because the objective is not only to predict DASS-S but also to identify which academic-stressor variables are most influential within the model.
+
+\subsection{Limitations}
+
+Several limitations must be acknowledged.
+
+First, the dataset represents a particular university-student population and therefore the findings may not generalize to every university, country, or cultural context.
+
+Second, questionnaire responses may contain reporting and response biases. Third, the analysis is based on observational data and therefore cannot establish temporal or causal relationships.
+
+Fourth, SHAP values describe the behavior of the trained predictive model rather than causal effects. A high SHAP value means that a variable is influential for the model, not that changing that variable would necessarily change a student's stress level.
+
+Finally, the current models achieve only moderate explanatory power. Additional variables, external validation datasets, longitudinal observations, and more systematic subgroup analyses may be necessary to determine whether the observed predictive patterns remain stable.
+
+% ============================================================
+% 9. CONCLUSION
+% ============================================================
+
+\section{Conclusion}
+
+This study developed an explainable machine-learning framework for predicting DASS-21 stress scores using the 29 USSQ academic-stressor items and relevant demographic information. Multiple models were compared, and SHAP was used to interpret the most influential predictors and their contributions across the seven USSQ dimensions. The results show that machine learning can provide useful predictive information while explainability techniques can make model behavior easier to understand. However, the findings should be interpreted only as predictive associations and should not be considered evidence of causation, diagnosis, or treatment. Future work can focus on external validation, longitudinal data, subgroup stability, and improved model calibration.
+
+% ============================================================
+% REFERENCES
+% ============================================================
+
+\begin{thebibliography}{99}
+
+\bibitem{arya2024}
+S. Arya, A. Anju, and N. A. Ramli,
+``Predicting the stress level of students using Supervised Machine Learning and Artificial Neural Network (ANN),''
+\textit{Indian Journal of Engineering},
+vol. 21, no. 56, pp. 1--24, 2024.
+doi: 10.54905/disssi.v21i55.e9ije1684.
+
+\bibitem{berlian2026}
+G. Berlian, Z. Ardi, A. H. Putra, and A. Firdaus,
+``Academic Stress among University Students in Digital-Based Learning: The Roles of Social Support, Academic Self-Efficacy, and Subjective Well-Being,''
+\textit{Al Musyrif Jurnal Bimbingan Dan Konseling Islam},
+vol. 9, no. 1, pp. 93--113, 2026.
+doi: 10.38073/almusyrif.v9i1.4633.
+
+\bibitem{deani2026}
+K. R. F. Deani, A. Afgani, and D. Mutiara,
+``The relationship between sleep quality with fat mass and BMI among students of Medicine Faculty UNJANI,''
+Aug. 7, 2026.
+
+\bibitem{garciaceja2026}
+E. Garcia-Ceja, J. Alvarado-Uribe, P. J. Escamilla-Ambrosio,
+A. Lara, A. Mena-Martinez, G. Gallegos-Garcia,
+M. Gonzalez-Mendoza, R. Monroy, G. M. Luna, and
+J. M. Fernández-Cárdenas,
+``A Dataset of University Students' Stress and Anxiety Levels based on Questionnaires and Wearable Sensors,''
+\textit{Scientific Data},
+vol. 13, no. 1, 2026.
+doi: 10.1038/s41597-026-07085-7.
+
+\bibitem{omarbekova2026}
+A. Omarbekova, A. Nazyrova, G. Bekmanova, Z. Lamasheva,
+A. Gibadullina, and A. Abdikarim,
+``An explainable machine learning framework for academic stress classification among university students: a comparative multi-dataset study with ablation analysis and statistical significance testing,''
+\textit{Frontiers in Computer Science},
+vol. 8, 2026.
+doi: 10.3389/fcomp.2026.1886274.
+
+\bibitem{ouyang2026}
+H. Ouyang, H. Xie, Y. Wang, X. Chen, Q. Cheng, B. Hou,
+and P. Zhang,
+``Academic stress, cognitive appraisal, academic self-efficacy, and academic anxiety among Chinese college students: A moderated mediation model,''
+\textit{Acta Psychologica},
+vol. 263, 106322, 2026.
+
+\bibitem{phamngoc2026}
+D. Pham-Ngoc, P. Nguyen, N. Nguyen-Thi, D. Nguyen,
+C. Vo, T. Tat, H. C. S. H. Do, and V. Tran-Chi,
+``Psychological and religious predictors of help seeking attitudes among university students under perceived stress,''
+\textit{Scientific Reports},
+vol. 16, no. 1, 6398, 2026.
+doi: 10.1038/s41598-026-36332-5.
+
+\bibitem{pittri2026}
+H. Pittri, D. W. Atibila, G. A. G. R. Godawatte,
+M. A. Agyekum, D. G. Agyemang, S. Kyong-Ire,
+and K. Agyekum,
+``Academic stress among built environment students: An examination of key stressors and coping mechanisms,''
+\textit{International Journal of Educational Research},
+vol. 138, 103009, 2026.
+doi: 10.1016/j.ijer.2026.103009.
+
+\bibitem{pubmed}
+PubMed,
+``University student stress and related research,''
+National Library of Medicine.
+
+\bibitem{zeng2025}
+Y. Zeng and Y. Cong,
+``Challenge and Hindrance Academic Stressors and University Students' Well-Being: The Chain Mediating Roles of Meaning in Life and Academic Self-Efficacy,''
+\textit{International Journal of Mental Health Promotion},
+vol. 27, no. 11, pp. 1663--1679, 2025.
+doi: 10.32604/ijmhp.2025.072125.
+
+\end{thebibliography}
+
+\end{document}
